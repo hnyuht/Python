@@ -65,10 +65,7 @@ def main():
         if vulnerable:
             print(f"This version of OpenSSH is vulnerable. {message}")
             mitigated, mitigation_message = check_login_grace_time()
-            if mitigated:
-                print(f"Mitigation applied: {mitigation_message}")
-            else:
-                print(f"No mitigation applied: {mitigation_message}")
+            print(f"Mitigation status: {mitigation_message}")
         else:
             print(f"This version of OpenSSH is not vulnerable. {message}")
     else:
