@@ -1,5 +1,6 @@
 import subprocess
 import re
+import os
 
 def get_openssh_version():
     try:
@@ -11,8 +12,7 @@ def get_openssh_version():
         else:
             return None
     except Exception as e:
-        print(f"Error fetching OpenSSH version: {e}")
-        return None
+        return f"Error fetching OpenSSH version: {e}"
 
 def is_vulnerable(version):
     try:
@@ -35,8 +35,7 @@ def is_vulnerable(version):
         else:
             return False, "Not vulnerable"
     except Exception as e:
-        print(f"Error parsing version: {e}")
-        return False, "Error parsing version"
+        return False, f"Error parsing version: {e}"
 
 def check_login_grace_time():
     config_file_path = "/etc/ssh/sshd_config"
@@ -58,18 +57,24 @@ def check_login_grace_time():
         return False, f"Error checking LoginGraceTime: {e}"
 
 def main():
+    output = []
+    
     version = get_openssh_version()
     if version:
-        print(f"OpenSSH version: {version}")
+        output.append(f"OpenSSH version: {version}")
         vulnerable, message = is_vulnerable(version)
         if vulnerable:
-            print(f"This version of OpenSSH is vulnerable. {message}")
+            output.append(f"This version of OpenSSH is vulnerable. {message}")
             mitigated, mitigation_message = check_login_grace_time()
-            print(f"Mitigation status: {mitigation_message}")
+            output.append(f"Mitigation status: {mitigation_message}")
         else:
-            print(f"This version of OpenSSH is not vulnerable. {message}")
+            output.append(f"This version of OpenSSH is not vulnerable. {message}")
     else:
-        print("Could not determine OpenSSH version.")
+        output.append("Could not determine OpenSSH version.")
+    
+    with open("/tmp/openssh_vulnerability_check.txt", "w") as file:
+        file.write("\n".join(output))
+    print("Results written to /tmp/openssh_vulnerability_check.txt")
 
 if __name__ == "__main__":
     main()
