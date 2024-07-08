@@ -12,10 +12,17 @@ def check_package_installed(package_name, version):
     except subprocess.CalledProcessError:
         return False
 
-package_name = 'openssh.x86_64'
-package_version = '8.7p1-38.e19_4.1'
+# Define the package name and versions to check
+package_name = 'openssh'
+package_versions = ['8.7p1-38.el9_4.1', 'openssh-8.7p1-38.el9_4.1']
 
-if check_package_installed(package_name, package_version):
-    print(f'{package_name} version {package_version} is installed.')
-else:
-    print(f'{package_name} version {package_version} is not installed.')
+# Check each version
+found = False
+for version in package_versions:
+    if check_package_installed(package_name, version):
+        print(f'{package_name} version {version} is installed.')
+        found = True
+        break
+
+if not found:
+    print(f'{package_name} versions {", ".join(package_versions)} are not installed.')
