@@ -2,18 +2,10 @@ import subprocess
 
 def get_ssh_version():
     try:
-        # Use yum command to list installed openssh
-        result = subprocess.run(['yum', 'list', 'installed', 'openssh'], capture_output=True, text=True, check=True)
+        # Use rpm command to query installed openssh package version
+        result = subprocess.run(['rpm', '-q', '--queryformat', '%{VERSION}', 'openssh'], capture_output=True, text=True, check=True)
         if result.returncode == 0:
-            # Split the output by lines
-            lines = result.stdout.strip().split('\n')
-            for line in lines:
-                if 'openssh' in line.lower():
-                    # Extract version from the line
-                    parts = line.split()
-                    version = parts[-1]
-                    return version
-            return None
+            return result.stdout.strip()
         else:
             return None
     except subprocess.CalledProcessError:
