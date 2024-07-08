@@ -55,15 +55,15 @@ def check_login_grace_time():
     except Exception as e:
         return False, f"Error checking LoginGraceTime: {e}"
 
-def check_rpm_installed(rpm_name):
+def check_openssh_installed():
     try:
-        result = subprocess.run(['rpm', '-qa', rpm_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if result.returncode == 0 and rpm_name in result.stdout:
-            return True, f"RPM package {rpm_name} is installed."
+        result = subprocess.run(['yum', 'list', 'installed', 'openssh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0 and 'openssh' in result.stdout:
+            return True, "OpenSSH package is installed."
         else:
-            return False, f"RPM package {rpm_name} is not installed."
+            return False, "OpenSSH package is not installed."
     except Exception as e:
-        return False, f"Error checking RPM package: {e}"
+        return False, f"Error checking OpenSSH package: {e}"
 
 def main():
     output = []
@@ -81,9 +81,8 @@ def main():
     else:
         output.append("Could not determine OpenSSH version.")
     
-    rpm_name = "openssh-8.7p1-38.el9_4.1.x86_64"
-    rpm_installed, rpm_message = check_rpm_installed(rpm_name)
-    output.append(f"RPM check: {rpm_message}")
+    openssh_installed, openssh_message = check_openssh_installed()
+    output.append(f"OpenSSH check: {openssh_message}")
     
     print("\n".join(output))
 
