@@ -66,12 +66,12 @@ def get_rpm_installed_and_hash():
         if rpm_check.returncode != 0:
             return False, "RPM package is not installed."
         
-        # Get the installed RPM package file
-        rpm_file_info = subprocess.run(['rpm', '-qlp', '/var/lib/rpm/Packages'], stdout=subprocess.PIPE, text=True)
+        # Get the installed RPM package file location
+        rpm_file_info = subprocess.run(['rpm', '-ql', rpm_name], stdout=subprocess.PIPE, text=True)
         rpm_files = rpm_file_info.stdout.strip().split('\n')
         
         for file in rpm_files:
-            if rpm_name in file:
+            if file.endswith('.rpm'):
                 with open(file, 'rb') as f:
                     file_data = f.read()
                     actual_hash = hashlib.sha256(file_data).hexdigest()
