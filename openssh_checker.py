@@ -2,8 +2,8 @@ import subprocess
 
 def check_package_installed(package_name, version):
     try:
-        # Use rpm command to query installed package
-        result = subprocess.run(['rpm', '-q', package_name], capture_output=True, text=True, check=True)
+        # Use yum command to list installed packages matching 'openssh'
+        result = subprocess.run(['yum', 'list', 'installed', package_name], capture_output=True, text=True, check=True)
         if result.returncode == 0:
             # Check if the version is in the output
             return version in result.stdout.strip()
@@ -12,7 +12,7 @@ def check_package_installed(package_name, version):
     except subprocess.CalledProcessError:
         return False
 
-# Define the package name and versions to check
+# Define the package name and version to check
 package_name = 'openssh'
 package_versions = ['8.7p1-38.el9_4.1', 'openssh-8.7p1-38.el9_4.1']
 
