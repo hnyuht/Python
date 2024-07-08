@@ -1,6 +1,5 @@
 import subprocess
 import re
-import hashlib
 
 def get_openssh_version():
     try:
@@ -56,33 +55,15 @@ def check_login_grace_time():
     except Exception as e:
         return False, f"Error checking LoginGraceTime: {e}"
 
-def get_rpm_installed_and_hash():
-    rpm_name = "openssh-8.7p1-38.el9_4.1.x86_64"
-    expected_hash = "c795537c8aade8f8b4018f8deb14572779501265cea929ecb509f22f4598e7a2"
-    
+def check_rpm_installed(rpm_name):
     try:
-        # Check if RPM is installed
         rpm_check = subprocess.run(['rpm', '-q', rpm_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if rpm_check.returncode != 0:
-            return False, "RPM package is not installed."
-        
-        # Get the installed RPM package file location
-        rpm_file_info = subprocess.run(['rpm', '-ql', rpm_name], stdout=subprocess.PIPE, text=True)
-        rpm_files = rpm_file_info.stdout.strip().split('\n')
-        
-        for file in rpm_files:
-            if file.endswith('.rpm'):
-                with open(file, 'rb') as f:
-                    file_data = f.read()
-                    actual_hash = hashlib.sha256(file_data).hexdigest()
-                    if actual_hash == expected_hash:
-                        return True, "RPM is installed and hash matches."
-                    else:
-                        return False, f"RPM is installed but hash does not match (expected {expected_hash}, got {actual_hash})."
-        
-        return False, "RPM is installed but no matching files found for hash verification."
+        if rpm_check.returncode == 0:
+            return True, f"RPM package {rpm_name} is installed."
+        else:
+            return False, f"RPM package {rpm_name} is not installed."
     except Exception as e:
-        return False, f"Error checking RPM package and hash: {e}"
+        return False, f"Error checking RPM package: {e}"
 
 def main():
     output = []
@@ -99,10 +80,11 @@ def main():
             output.append(f"This version of OpenSSH is not vulnerable. {message}")
     else:
         output.append("Could not determine OpenSSH version.")
-
-    rpm_installed, rpm_message = get_rpm_installed_and_hash()
+    
+    rpm_name = "openssh-8.7p1-38.el9_4.1.x86_64"
+    rpm_installed, rpm_message = check_rpm_installed(rpm_name)
     output.append(f"RPM check: {rpm_message}")
-
+    
     print("\n".join(output))
 
 if __name__ == "__main__":
