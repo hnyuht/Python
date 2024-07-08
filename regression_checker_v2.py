@@ -57,12 +57,11 @@ def check_login_grace_time():
 
 def check_rpm_installed(rpm_name):
     try:
-        result = subprocess.run(['rpm', '-qa'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        installed_packages = result.stdout.splitlines()
-        for package in installed_packages:
-            if rpm_name in package:
-                return True, f"RPM package {rpm_name} is installed."
-        return False, f"RPM package {rpm_name} is not installed."
+        result = subprocess.run(['rpm', '-qa', rpm_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode == 0 and rpm_name in result.stdout:
+            return True, f"RPM package {rpm_name} is installed."
+        else:
+            return False, f"RPM package {rpm_name} is not installed."
     except Exception as e:
         return False, f"Error checking RPM package: {e}"
 
