@@ -4,12 +4,14 @@ def check_package_installed(package_name, version):
     try:
         # Use yum command to check if package is installed
         result = subprocess.run(['yum', 'list', 'installed', f'{package_name}'], capture_output=True, text=True, check=True)
+        print(result.stdout)  # Print yum command output for debugging
         if result.returncode == 0:
             # Check if the version is in the output
             return version in result.stdout
         else:
             return False
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        print(f"Error running yum command: {e}")
         return False
 
 package_name = 'openssh.x86_64'
