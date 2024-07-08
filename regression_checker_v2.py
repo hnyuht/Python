@@ -58,7 +58,7 @@ def check_login_grace_time():
 def check_openssh_installed():
     try:
         result = subprocess.run(['yum', 'list', 'installed', 'openssh'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if 'openssh' in result.stdout:
+        if 'openssh' in result.stdout and '8.7p1-38.e19_4.1' in result.stdout:
             return True, "OpenSSH package is installed."
         else:
             return False, "OpenSSH package is not installed."
