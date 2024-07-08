@@ -5,8 +5,13 @@ def check_package_installed(package_name, version):
         # Use yum command to list installed packages matching 'openssh'
         result = subprocess.run(['yum', 'list', 'installed', 'openssh'], capture_output=True, text=True, check=True)
         if result.returncode == 0:
-            # Check if both package name and version are in the output
-            return f"{package_name} {version}" in result.stdout
+            # Split the output by lines
+            lines = result.stdout.strip().split('\n')
+            # Check each line for the package name and version
+            for line in lines[1:]:  # Skip the header line
+                if package_name in line and version in line:
+                    return True
+            return False
         else:
             return False
     except subprocess.CalledProcessError:
