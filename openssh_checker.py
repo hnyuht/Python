@@ -1,28 +1,25 @@
 import subprocess
 
-def check_package_installed(package_name, version):
+def get_ssh_version():
     try:
-        # Use yum command to list installed packages matching 'openssh'
-        result = subprocess.run(['yum', 'list', 'installed', package_name], capture_output=True, text=True, check=True)
+        # Use yum command to list installed openssh
+        result = subprocess.run(['yum', 'list', 'installed', 'openssh'], capture_output=True, text=True, check=True)
         if result.returncode == 0:
-            # Check if the version is in the output
-            return version in result.stdout.strip()
+            # Split the output by lines and find the line containing openssh
+            lines = result.stdout.strip().split('\n')
+            for line in lines[1:]:  # Skip the header line
+                if 'openssh' in line.lower():
+                    parts = line.split()
+                    return parts[-1]  # Last part should be the version
         else:
-            return False
+            return None
     except subprocess.CalledProcessError:
-        return False
+        return None
 
-# Define the package name and version to check
-package_name = 'openssh'
-package_versions = ['8.7p1-38.el9_4.1', 'openssh-8.7p1-38.el9_4.1']
+# Get the version of openssh
+ssh_version = get_ssh_version()
 
-# Check each version
-found = False
-for version in package_versions:
-    if check_package_installed(package_name, version):
-        print(f'{package_name} version {version} is installed.')
-        found = True
-        break
-
-if not found:
-    print(f'{package_name} versions {", ".join(package_versions)} are not installed.')
+if ssh_version:
+    print(f"The version of openssh installed is: {ssh_version}")
+else:
+    print("Failed to retrieve openssh version.")
