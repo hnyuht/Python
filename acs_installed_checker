@@ -1,0 +1,70 @@
+import subprocess
+import platform
+
+# Dictionary of supported OS versions and the corresponding required KB numbers
+kb_updates = {
+    'Windows-Server-10.0.20348': '5005619',  # Windows Server 2022
+    'Windows-10-10.0.19041': '5005611',      # Windows 10 version 2004
+    'Windows-10-10.0.19042': '5005611',      # Windows 10 version 20H2
+    'Windows-10-10.0.19043': '5005611',      # Windows 10 version 21H1
+    'Windows-10-10.0.18363': '5005624',      # Windows 10 version 1909
+    'Windows-10-10.0.17763': '5005625',      # Windows 10 version 1809
+    'Windows-Server-10.0.17763': '5005625',  # Windows Server 2019
+    'Windows-10-10.0.14393': '5006669',      # Windows 10 version 1607
+    'Windows-Server-10.0.14393': '5006669',  # Windows Server 2016
+    'Windows-10-10.0.10240': '5006675',      # Windows 10 version 1507
+    'Windows-6.3.9600': ['5006714', '5006729'],  # Windows 8.1 / Windows Server 2012 R2
+    'Windows-6.2.9200': ['5006739', '5006732'],  # Windows Server 2012
+    'Windows-6.1.7601': ['5006743', '5006728'],  # Windows 7 SP1 / Windows Server 2008 R2 SP1
+    'Windows-6.0.6002': ['5006736', '5006715'],  # Windows Server 2008 SP2
+}
+
+def get_os_version():
+    """
+    Get the OS version in a format that matches the keys in the kb_updates dictionary.
+    """
+    os_info = platform.uname()
+    if os_info.system == 'Windows':
+        version = os_info.release
+        build = os_info.version.split(' ')[-1]  # Get the build number
+        return f"Windows-{os_info.system}-{version}.{build}"
+    return None
+
+def check_kb_installed(kb_number):
+    """
+    Check if a given KB number is installed using the 'wmic' command.
+    """
+    try:
+        # Run the 'wmic' command to get the list of installed hotfixes
+        result = subprocess.run(['wmic', 'qfe', 'list', 'brief'], capture_output=True, text=True, check=True)
+        installed_kbs = result.stdout
+
+        # Check if the KB number is in the output
+        return kb_number in installed_kbs
+    except subprocess.CalledProcessError as e:
+        print(f"Error checking KBs: {e}")
+        return False
+
+def main():
+    # Get the OS version
+    os_version = get_os_version()
+    print(f"Detected OS version: {os_version}")
+
+    # Check if the OS version is in the KB updates dictionary
+    if os_version in kb_updates:
+        required_kb = kb_updates[os_version]
+        print(f"Checking for required KB: {required_kb}")
+
+        # Handle cases where multiple KBs are listed
+        if isinstance(required_kb, list):
+            for kb in required_kb:
+                installed = check_kb_installed(kb)
+                print(f"KB {kb} is {'installed.' if installed else 'NOT installed.'}")
+        else:
+            installed = check_kb_installed(required_kb)
+            print(f"KB {required_kb} is {'installed.' if installed else 'NOT installed.'}")
+    else:
+        print(f"OS version {os_version} is not applicable for this KB check.")
+
+if __name__ == "__main__":
+    main()
