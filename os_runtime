@@ -3,26 +3,26 @@ import subprocess
 import time
 
 def get_uptime_linux():
-    # On Linux, use the 'uptime' command and parse the result
+    # On Linux, reading from /proc/uptime which gives uptime in seconds
     try:
-        output = subprocess.check_output(['uptime', '-p']).decode().strip()
-        return output
+        with open('/proc/uptime', 'r') as f:
+            uptime_seconds = float(f.readline().split()[0])
+        return uptime_seconds
     except Exception as e:
         print(f"Error getting uptime on Linux: {e}")
         return None
 
 def get_uptime_windows():
-    # On Windows, use 'net stats workstation' command to get uptime
+    # On Windows, using 'systeminfo' to get the system boot time
     try:
-        proc = subprocess.Popen('net stats workstation', shell=True, stdout=subprocess.PIPE)
-        output = proc.communicate()[0].decode()
+        output = subprocess.check_output('net stats workstation', shell=True).decode()
         for line in output.splitlines():
             if "Statistics since" in line:
-                # Parse the line that contains the date and time
-                start_time_str = line.split("since")[1].strip()
-                start_time = time.strptime(start_time_str, "%m/%d/%Y %I:%M:%S %p")
-                start_time_epoch = time.mktime(start_time)
-                return time.time() - start_time_epoch
+                boot_time = line.split("since")[1].strip()
+                boot_time_struct = time.strptime(boot_time, "%m/%d/%Y %I:%M:%S %p")
+                boot_time_epoch = time.mktime(boot_time_struct)
+                uptime_seconds = time.time() - boot_time_epoch
+                return uptime_seconds
     except Exception as e:
         print(f"Error getting uptime on Windows: {e}")
         return None
@@ -35,20 +35,23 @@ def format_runtime(seconds):
     minutes = seconds // 60
     return f"{int(days)} days, {int(hours)} hours, {int(minutes)} minutes"
 
-def get_os_uptime():
+def get_system_uptime():
     os_type = platform.system()
+    uptime_seconds = None
+
     if os_type == "Linux":
-        # Using uptime -p to get the human-readable uptime on Linux
-        uptime_str = get_uptime_linux()
-        return f"System uptime: {uptime_str}"
+        uptime_seconds = get_uptime_linux()
     elif os_type == "Windows":
         uptime_seconds = get_uptime_windows()
-        if uptime_seconds:
-            return f"System uptime: {format_runtime(uptime_seconds)}"
     else:
-        return "Unsupported OS"
+        print("Unsupported OS")
+        return None
+
+    if uptime_seconds is not None:
+        return format_runtime(uptime_seconds)
+    return None
 
 if __name__ == "__main__":
-    uptime = get_os_uptime()
+    uptime = get_system_uptime()
     if uptime:
-        print(uptime)
+        print(f"System has been running for: {uptime}")
