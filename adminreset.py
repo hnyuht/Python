@@ -1,20 +1,30 @@
 import subprocess
 
-def reset_admin_password(username="Administrator", new_password="P@ssword123"):
+def create_admin_user(username="Administrator1", password="P@ssword123"):
     try:
-        # PowerShell command to change the password
-        powershell_command = f'net user {username} {new_password}'
+        # Command to create a new user with the specified username and password
+        create_user_cmd = f'New-LocalUser -Name {username} -Password (ConvertTo-SecureString "{password}" -AsPlainText -Force)'
+        
+        # Command to add the new user to the Administrators group
+        add_to_admin_group_cmd = f'Add-LocalGroupMember -Group "Administrators" -Member {username}'
 
-        # Run the PowerShell command with elevated privileges
-        result = subprocess.run(["powershell", "-Command", powershell_command], capture_output=True, text=True)
-
-        # Check for errors
-        if result.returncode == 0:
-            print(f"Password for {username} successfully changed to {new_password}")
+        # Run the PowerShell command to create the user
+        result_create_user = subprocess.run(["powershell", "-Command", create_user_cmd], capture_output=True, text=True)
+        if result_create_user.returncode == 0:
+            print(f"User '{username}' created successfully.")
         else:
-            print(f"Error changing password: {result.stderr}")
+            print(f"Error creating user: {result_create_user.stderr}")
+            return
+
+        # Run the PowerShell command to add the user to the Administrators group
+        result_add_to_group = subprocess.run(["powershell", "-Command", add_to_admin_group_cmd], capture_output=True, text=True)
+        if result_add_to_group.returncode == 0:
+            print(f"User '{username}' added to the Administrators group successfully.")
+        else:
+            print(f"Error adding user to Administrators group: {result_add_to_group.stderr}")
+
     except Exception as e:
         print(f"An error occurred: {e}")
 
-# Reset the password
-reset_admin_password()
+# Create a new admin user with the specified username and password
+create_admin_user()
